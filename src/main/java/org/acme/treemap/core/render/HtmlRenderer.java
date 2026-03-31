@@ -28,6 +28,9 @@ public final class HtmlRenderer implements Generator {
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
+    private static final int MAX_HORIZONTAL_LABEL_WIDTH_PX = 44;
+    private static final int MIN_VERTICAL_LABEL_HEIGHT_PX = 72;
+    private static final int MIN_MICRO_LABEL_FONT_PX = 7;
     /**
      * Inset per edge so neighboring cells leave a gap (stroke/hover read more
      * clearly).
@@ -181,6 +184,37 @@ public final class HtmlRenderer implements Generator {
                     textColor,
                     fs2,
                     sizeLabel));
+        } else if (iw <= MAX_HORIZONTAL_LABEL_WIDTH_PX && ih >= MIN_VERTICAL_LABEL_HEIGHT_PX) {
+            // Tall/narrow cells can still carry context when we rotate labels.
+            String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
+            String artifact = xmlText(shortenLabel(node.key().artifactId(), ih / 7));
+            int fs = Math.max(9, Math.min(13, ih / 10));
+            int cx = ix + (iw / 2);
+            int cy = iy + ih - 6;
+            svg.append(String.format(
+                    Locale.ROOT,
+                    "<g transform=\"translate(%d,%d) rotate(-90)\"><text fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" text-anchor=\"start\">%s</text></g>\n",
+                    cx,
+                    cy,
+                    textColor,
+                    fs,
+                    artifact));
+        } else {
+            // Always render at least a compact label so every cell has visible text.
+            String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
+            int fs = Math.max(MIN_MICRO_LABEL_FONT_PX, Math.min(11, Math.min(iw, ih) - 1));
+            String compact = shortenLabel(node.key().artifactId(), Math.max(1, iw / 6));
+            String label = xmlText(compact);
+            int xLabel = ix + 2;
+            int yLabel = iy + Math.max(fs, 8);
+            svg.append(String.format(
+                    Locale.ROOT,
+                    "<text x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" opacity=\"0.92\">%s</text>\n",
+                    xLabel,
+                    yLabel,
+                    textColor,
+                    fs,
+                    label));
         }
     }
 
@@ -219,6 +253,20 @@ public final class HtmlRenderer implements Generator {
                 + node.key().version()
                 + ":"
                 + node.key().scope();
+    }
+
+    private static String shortenLabel(String artifactId, int maxChars) {
+        if (artifactId == null || artifactId.isEmpty()) {
+            return "?";
+        }
+        int limit = Math.max(1, maxChars);
+        if (artifactId.length() <= limit) {
+            return artifactId;
+        }
+        if (limit <= 2) {
+            return artifactId.substring(0, 1);
+        }
+        return artifactId.substring(0, limit - 1) + "…";
     }
 
     private static String escapeAttr(String s) {

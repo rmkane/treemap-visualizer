@@ -49,4 +49,22 @@ class HtmlTemplateTest {
         assertTrue(html.contains("Parent: g:a:jar:1:compile"));
         assertTrue(!html.contains("@@"), "no leftover template placeholders");
     }
+
+    @Test
+    void tinyCellsStillRenderTextLabel(@TempDir Path dir) throws IOException {
+        ArtifactKey rootKey = new ArtifactKey("g", "artifact-with-long-name", "jar", "1", "compile", Optional.empty());
+        DependencyNode root = new DependencyNode(rootKey);
+        root.setSelfSizeBytes(1);
+
+        Path out = dir.resolve("tiny.html");
+        new HtmlRenderer()
+                .generate(root, o -> o
+                        .output(out)
+                        .width(70)
+                        .height(80)
+                        .title("Tiny"));
+
+        String html = Files.readString(out);
+        assertTrue(html.contains("<text "), "small cells should still include a visible label");
+    }
 }
