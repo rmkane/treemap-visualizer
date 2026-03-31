@@ -2,6 +2,8 @@ package org.acme.treemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import org.acme.treemap.core.OutputFormat;
@@ -57,5 +59,12 @@ class MainFormatTest {
         Main m = new Main();
         new CommandLine(m).parseArgs("-o", "deps.yml");
         assertEquals(OutputFormat.YAML, m.resolvedFormat());
+    }
+
+    @Test
+    void defaultOutputUsesProjectNamePrefix() {
+        Main m = new Main();
+        Path out = m.resolvedOutput(Path.of("/tmp/acme-api-mvc"), OutputFormat.HTML);
+        assertEquals(Path.of("/tmp/acme-api-mvc/target/treemap-acme-api-mvc.html").toAbsolutePath().normalize(), out);
     }
 }

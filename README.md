@@ -15,7 +15,7 @@ It is intentionally structured so it can transition into a **Maven plugin** next
 
 - format-specific generation via `Generator` implementations
 - shared `OutputOptions`
-- output path defaults derived from Maven metadata (`artifactId`)
+- output path defaults derived from the analyzed project directory name
 
 ## Requirements
 
@@ -50,7 +50,7 @@ java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar [projectDir] [options]
 If `--output` is omitted, the default is:
 
 ```text
-target/<artifactId>.<ext>
+target/treemap-<projectName>.<ext>
 ```
 
 Examples:
@@ -95,7 +95,7 @@ make output-json
 make output-yaml
 ```
 
-Default output files are generated into `target/` and named by artifactId.
+Default output files are generated into `target/` and named with a `treemap-` prefix plus project directory name.
 
 ## Formatting and CI
 

@@ -1,5 +1,6 @@
 package org.acme.treemap.core;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.acme.treemap.core.maven.DependencyTreeCache;
 import org.acme.treemap.core.maven.DependencyTreeParser;
 import org.acme.treemap.core.maven.LocalArtifactResolver;
 import org.acme.treemap.core.maven.MavenInvoker;
+import org.acme.treemap.core.maven.PackagedJarAnalyzer;
 import org.acme.treemap.core.maven.PomChecksum;
 import org.acme.treemap.core.render.Generator;
 import org.acme.treemap.core.render.Generators;
@@ -34,7 +36,8 @@ public class TreemapCommand implements Callable<Integer> {
     @Parameters(index = "0", arity = "0..1", defaultValue = ".", description = "Maven project directory (must contain pom.xml)")
     private Path projectDir;
 
-    @Option(names = { "-o", "--output" }, description = "Output path (optional). Default: target/<artifactId>.<ext>")
+    @Option(names = { "-o",
+            "--output" }, description = "Output path (optional). Default: target/treemap-<projectName>.<ext>")
     private Path output;
 
     @Option(names = {
@@ -52,6 +55,13 @@ public class TreemapCommand implements Callable<Integer> {
 
     @Option(names = "--cache-dir", description = "Dependency tree cache directory (default: XDG_CACHE_HOME/.../treemap-visualize/dependency-tree)")
     private Path cacheDir;
+
+    @Option(names = {
+            "--analysis-mode" }, description = "dependency | packaged | auto (default: auto)")
+    private AnalysisMode analysisMode = AnalysisMode.AUTO;
+
+    @Option(names = "--packaged-jar", description = "Output JAR to inspect in packaged mode (default: auto-detect in target/)")
+    private Path packagedJar;
 
     public static final class OutputFormatConverter implements CommandLine.ITypeConverter<OutputFormat> {
         @Override
@@ -80,7 +90,7 @@ public class TreemapCommand implements Callable<Integer> {
         return OutputFormat.PNG;
     }
 
-    public Path resolvedOutput(Path project, String artifactId, OutputFormat outFormat) {
+    public Path resolvedOutput(Path project, OutputFormat outFormat) {
         if (output != null) {
             return output.toAbsolutePath().normalize();
         }
@@ -90,7 +100,8 @@ public class TreemapCommand implements Callable<Integer> {
         case PNG -> "png";
         case YAML -> "yaml";
         };
-        return project.resolve("target").resolve(artifactId + "." + ext).toAbsolutePath().normalize();
+        String stem = "treemap-" + projectNameForOutput(project);
+        return project.resolve("target").resolve(stem + "." + ext).toAbsolutePath().normalize();
     }
 
     @Override
@@ -151,13 +162,26 @@ public class TreemapCommand implements Callable<Integer> {
         if (pruned > 0) {
             log.info("Pruned {} non-packaged dependency node(s) (test/provided scopes)", pruned);
         }
-        new LocalArtifactResolver(localRepo).applySizes(root);
+        LocalArtifactResolver resolver = new LocalArtifactResolver(localRepo);
+        AnalysisMode resolvedMode = resolveAnalysisMode(project);
+        if (resolvedMode == AnalysisMode.PACKAGED) {
+            Path jar = resolvePackagedJar(project);
+            PackagedJarAnalyzer.Result result = new PackagedJarAnalyzer(resolver).applyPackagedSizes(root, jar);
+            log.info("Analysis mode: PACKAGED ({})", jar);
+            log.info("Packaged attribution: attributed={} B, unknown={} B, overlaps={}",
+                    result.attributedBytes(),
+                    result.unknownBytes(),
+                    result.overlapEntryCount());
+        } else {
+            resolver.applySizes(root);
+            log.info("Analysis mode: DEPENDENCY (local artifact sizes)");
+        }
         long analyzeElapsedMs = (System.nanoTime() - analyzeStartNs) / NANOS_PER_MILLISECOND;
         log.info("Tree parse + artifact sizing time: {} ms", analyzeElapsedMs);
 
         String title = "Dependencies: " + project.getFileName() + " (" + root.key().artifactId() + ")";
         OutputFormat outFormat = resolvedFormat();
-        Path out = resolvedOutput(project, root.key().artifactId(), outFormat);
+        Path out = resolvedOutput(project, outFormat);
         log.info("Output format: {}", outFormat);
         Generator generator = Generators.forOutputFormat(outFormat);
         long renderStartNs = System.nanoTime();
@@ -172,5 +196,35 @@ public class TreemapCommand implements Callable<Integer> {
         log.info("Wrote {}", out);
         System.out.println(out);
         return 0;
+    }
+
+    private AnalysisMode resolveAnalysisMode(Path project) throws IOException {
+        if (analysisMode == AnalysisMode.DEPENDENCY || analysisMode == AnalysisMode.PACKAGED) {
+            return analysisMode;
+        }
+        if (packagedJar != null && Files.isRegularFile(packagedJar.toAbsolutePath().normalize())) {
+            return AnalysisMode.PACKAGED;
+        }
+        return PackagedJarAnalyzer.detectDefaultPackagedJar(project).isPresent()
+                ? AnalysisMode.PACKAGED
+                : AnalysisMode.DEPENDENCY;
+    }
+
+    private Path resolvePackagedJar(Path project) throws IOException {
+        if (packagedJar != null) {
+            return packagedJar.toAbsolutePath().normalize();
+        }
+        return PackagedJarAnalyzer.detectDefaultPackagedJar(project)
+                .orElseThrow(() -> new IOException(
+                        "No packaged JAR found in target/. Provide --packaged-jar or use --analysis-mode dependency."));
+    }
+
+    private static String projectNameForOutput(Path project) {
+        Path fileName = project.getFileName();
+        String raw = fileName == null ? "project" : fileName.toString();
+        String normalized = raw.replaceAll("[^A-Za-z0-9._-]+", "-")
+                .replaceAll("-{2,}", "-")
+                .replaceAll("^-|-$", "");
+        return normalized.isEmpty() ? "project" : normalized;
     }
 }
