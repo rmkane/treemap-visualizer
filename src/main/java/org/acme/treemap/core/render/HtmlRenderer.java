@@ -41,9 +41,6 @@ public final class HtmlRenderer implements Generator {
      */
     private static volatile String templateCache;
 
-    public HtmlRenderer() {
-    }
-
     @Override
     public void generate(DependencyNode root, OutputOptions options) throws IOException {
         int width = options.width();

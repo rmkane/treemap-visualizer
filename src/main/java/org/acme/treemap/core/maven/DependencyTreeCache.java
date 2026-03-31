@@ -9,19 +9,18 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Caches raw {@code mvn dependency:tree} stdout keyed by {@link PomChecksum} of
  * {@code pom.xml}. Default directory follows XDG Base Directory:
  * {@code $XDG_CACHE_HOME/treemap-visualize/dependency-tree} or
  * {@code ~/.cache/treemap-visualize/dependency-tree}.
  */
+@RequiredArgsConstructor
 public final class DependencyTreeCache {
 
     private final Path directory;
-
-    public DependencyTreeCache(Path directory) {
-        this.directory = directory;
-    }
 
     public static Path defaultDirectory() {
         String home = System.getProperty("user.home");

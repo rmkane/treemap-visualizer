@@ -3,7 +3,10 @@ package org.acme.treemap.core.render;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import lombok.Builder;
+
 /** Shared render configuration passed to all renderer strategies. */
+@Builder(builderClassName = "Builder")
 public record OutputOptions(Path output, int width, int height, String title) {
 
     public OutputOptions {
@@ -17,39 +20,15 @@ public record OutputOptions(Path output, int width, int height, String title) {
         }
     }
 
-    /** Fluent builder entrypoint (Elastic-style). */
-    public static Builder builder() {
-        return new Builder();
-    }
-
+    /**
+     * Partial builder declared to supply default values; Lombok generates the
+     * fluent setter methods ({@code output()}, {@code width()}, {@code height()},
+     * {@code title()}), the {@code build()} method, and the static
+     * {@code builder()} factory on the record.
+     */
     public static final class Builder {
-        private Path output;
         private int width = 1200;
         private int height = 800;
         private String title = "Dependency Treemap";
-
-        public Builder output(Path output) {
-            this.output = output;
-            return this;
-        }
-
-        public Builder width(int width) {
-            this.width = width;
-            return this;
-        }
-
-        public Builder height(int height) {
-            this.height = height;
-            return this;
-        }
-
-        public Builder title(String title) {
-            this.title = title;
-            return this;
-        }
-
-        public OutputOptions build() {
-            return new OutputOptions(output, width, height, title);
-        }
     }
 }

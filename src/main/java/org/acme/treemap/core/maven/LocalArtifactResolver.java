@@ -8,17 +8,16 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Resolves artifact files under the local Maven repository and reports size on
  * disk.
  */
+@RequiredArgsConstructor
 public final class LocalArtifactResolver {
 
     private final Path localRepository;
-
-    public LocalArtifactResolver(Path localRepository) {
-        this.localRepository = localRepository;
-    }
 
     public static Path defaultLocalRepository() {
         String home = System.getProperty("user.home");
