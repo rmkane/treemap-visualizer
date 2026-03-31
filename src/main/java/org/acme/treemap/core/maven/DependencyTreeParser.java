@@ -8,10 +8,14 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Parses {@code mvn dependency:tree} text lines into a {@link DependencyNode}
  * tree.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DependencyTreeParser {
 
     private static final Pattern INFO_LINE = Pattern.compile("^\\[INFO\\] (.*)$");
@@ -21,9 +25,6 @@ public final class DependencyTreeParser {
      * sibling instead of {@code |  } for the same depth.
      */
     private static final Pattern TREE_CHILD = Pattern.compile("^((?:\\|  |   )*)([+\\\\]- )(.*)$");
-
-    private DependencyTreeParser() {
-    }
 
     public static DependencyNode parse(List<String> lines) {
         List<ParsedLine> parsed = new ArrayList<>();

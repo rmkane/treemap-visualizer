@@ -2,12 +2,13 @@ package org.acme.treemap.core.export;
 
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import org.acme.treemap.core.maven.DependencyNode;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TreemapSnapshots {
-
-    private TreemapSnapshots() {
-    }
 
     public static TreemapSnapshot from(DependencyNode root, String title) {
         return from(root, title, null, null);

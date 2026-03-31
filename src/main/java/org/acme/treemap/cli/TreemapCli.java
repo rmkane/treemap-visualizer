@@ -1,10 +1,11 @@
 package org.acme.treemap.cli;
 
-/** Backward-compatible alias; prefer {@link Entrypoint}. */
-public final class TreemapCli {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private TreemapCli() {
-    }
+/** Backward-compatible alias; prefer {@link Entrypoint}. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class TreemapCli {
 
     public static void main(String[] args) {
         Entrypoint.main(args);

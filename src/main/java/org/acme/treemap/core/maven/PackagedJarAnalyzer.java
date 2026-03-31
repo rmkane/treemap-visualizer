@@ -16,20 +16,19 @@ import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Attributes bytes from the built output JAR to dependency artifacts by
  * matching entry names against resolved dependency JAR contents.
  */
+@RequiredArgsConstructor
 public final class PackagedJarAnalyzer {
 
     public record Result(long attributedBytes, long unknownBytes, long overlapEntryCount) {
     }
 
     private final LocalArtifactResolver resolver;
-
-    public PackagedJarAnalyzer(LocalArtifactResolver resolver) {
-        this.resolver = resolver;
-    }
 
     public Result applyPackagedSizes(DependencyNode root, Path packagedJar) throws IOException {
         if (!Files.isRegularFile(packagedJar)) {

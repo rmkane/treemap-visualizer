@@ -2,13 +2,14 @@ package org.acme.treemap.core.render;
 
 import java.util.Objects;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import org.acme.treemap.core.OutputFormat;
 
 /** Resolves an {@link OutputFormat} to a {@link Generator} implementation. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Generators {
-
-    private Generators() {
-    }
 
     /**
      * Returns the generator used for CLI / {@code --format} selection. When adding

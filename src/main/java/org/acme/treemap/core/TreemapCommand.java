@@ -8,8 +8,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import org.acme.treemap.core.maven.DependencyNode;
 import org.acme.treemap.core.maven.DependencyScopePruner;
@@ -29,9 +28,9 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "treemap-visualize", description = "Treemap of Maven dependency sizes: PNG, HTML, JSON, or YAML (local ~/.m2 for sizes).", mixinStandardHelpOptions = true)
+@Slf4j
 public class TreemapCommand implements Callable<Integer> {
 
-    private static final Logger log = LoggerFactory.getLogger(TreemapCommand.class);
     private static final long NANOS_PER_MILLISECOND = 1_000_000L;
 
     @Parameters(index = "0", arity = "0..1", defaultValue = ".", description = "Maven project directory (must contain pom.xml)")

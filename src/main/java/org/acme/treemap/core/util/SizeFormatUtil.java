@@ -2,11 +2,12 @@ package org.acme.treemap.core.util;
 
 import java.util.Locale;
 
-/** Generic byte-size formatting helpers. */
-public final class SizeFormatUtil {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private SizeFormatUtil() {
-    }
+/** Generic byte-size formatting helpers. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SizeFormatUtil {
 
     public static String humanBytes(long bytes) {
         if (bytes < 1024) {

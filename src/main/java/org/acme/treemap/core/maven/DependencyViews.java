@@ -5,11 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/** Helpers to create alternate visualization views from dependency trees. */
-public final class DependencyViews {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private DependencyViews() {
-    }
+/** Helpers to create alternate visualization views from dependency trees. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DependencyViews {
 
     /**
      * Returns a flattened tree where top-level children are two buckets:

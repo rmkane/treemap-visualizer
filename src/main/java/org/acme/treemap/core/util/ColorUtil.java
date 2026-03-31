@@ -2,11 +2,12 @@ package org.acme.treemap.core.util;
 
 import java.awt.Color;
 
-/** Generic color helpers independent of renderer/output format. */
-public final class ColorUtil {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private ColorUtil() {
-    }
+/** Generic color helpers independent of renderer/output format. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ColorUtil {
 
     public static RgbColor fillFromKey(String key, int depth) {
         int h = Math.floorMod(key.hashCode(), 360);

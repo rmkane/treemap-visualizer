@@ -7,11 +7,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
-/** SHA-256 fingerprint of a POM file (for cache invalidation). */
-public final class PomChecksum {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private PomChecksum() {
-    }
+/** SHA-256 fingerprint of a POM file (for cache invalidation). */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class PomChecksum {
 
     public static String sha256Hex(Path pom) throws IOException {
         try {

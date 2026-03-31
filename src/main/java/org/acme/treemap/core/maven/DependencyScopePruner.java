@@ -3,16 +3,17 @@ package org.acme.treemap.core.maven;
 import java.util.Iterator;
 import java.util.Set;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Removes dependency scopes that do not normally end up in packaged runtime
  * artifacts.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DependencyScopePruner {
 
     private static final Set<String> NON_PACKAGED_SCOPES = Set.of("test", "provided");
-
-    private DependencyScopePruner() {
-    }
 
     /**
      * Prunes nodes in-place and returns number of removed nodes (including child

@@ -3,15 +3,16 @@ package org.acme.treemap.core.render;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Nested strip treemap (alternating slice-and-dice): children split the parent
  * rectangle in proportion to their weights. Deterministic and fills the area
  * without overlap.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TreemapLayout {
-
-    private TreemapLayout() {
-    }
 
     /**
      * Partitions {@code (x,y,w,h)} into one rectangle per weight. Splits along the
