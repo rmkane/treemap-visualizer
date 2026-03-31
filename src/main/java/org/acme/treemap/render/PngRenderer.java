@@ -1,6 +1,9 @@
 package org.acme.treemap.render;
 
 import org.acme.treemap.maven.DependencyNode;
+import org.acme.treemap.util.ColorUtil;
+import org.acme.treemap.util.RgbColor;
+import org.acme.treemap.util.SizeFormatUtil;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,22 +13,24 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import javax.imageio.ImageIO;
 
 /** Renders a dependency tree as a nested treemap PNG. */
-public final class TreemapPngRenderer {
+public final class PngRenderer implements Renderer {
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
 
-    private TreemapPngRenderer() {}
+    public PngRenderer() {}
 
-    public static void render(DependencyNode root, Path output, int width, int height, String title)
-            throws IOException {
+    @Override
+    public void render(DependencyNode root, OutputOptions options) throws IOException {
+        int width = options.width();
+        int height = options.height();
+        String title = options.title();
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -45,7 +50,7 @@ public final class TreemapPngRenderer {
             drawNode(g, root, plotX, plotY, plotW, plotH, 0);
         }
         g.dispose();
-        ImageIO.write(img, "png", output.toFile());
+        ImageIO.write(img, "png", options.output().toFile());
     }
 
     private static void drawNode(Graphics2D g, DependencyNode node, double x, double y, double w, double h, int depth) {
@@ -75,7 +80,8 @@ public final class TreemapPngRenderer {
         int iw = Math.max(1, (int) Math.ceil(x + w) - ix);
         int ih = Math.max(1, (int) Math.ceil(y + h) - iy);
 
-        Color fill = colorFor(node.key().shortLabel(), depth);
+        RgbColor fillRgb = ColorUtil.fillFromKey(node.key().shortLabel(), depth);
+        Color fill = fillRgb.toAwtColor();
         g.setColor(fill);
         g.fillRect(ix, iy, iw, ih);
         g.setColor(new Color(0, 0, 0, 60));
@@ -83,9 +89,9 @@ public final class TreemapPngRenderer {
         g.drawRect(ix, iy, iw, ih);
 
         if (Math.min(iw, ih) >= MIN_LABEL_PX) {
-            g.setColor(contrastText(fill));
+            g.setColor(ColorUtil.contrastText(fillRgb).toAwtColor());
             String label = node.key().artifactId();
-            String sub = formatSize(node.selfSizeBytes());
+            String sub = SizeFormatUtil.humanBytes(node.selfSizeBytes());
             g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, Math.min(14, iw / 12)));
             FontMetrics fm = g.getFontMetrics();
             drawClipped(g, label, ix + 4, iy + fm.getAscent() + 4, iw - 8);
@@ -93,17 +99,6 @@ public final class TreemapPngRenderer {
             fm = g.getFontMetrics();
             drawClipped(g, sub, ix + 4, iy + fm.getAscent() + 20, iw - 8);
         }
-    }
-
-    private static String formatSize(long bytes) {
-        if (bytes < 1024) {
-            return bytes + " B";
-        }
-        double kb = bytes / 1024.0;
-        if (kb < 1024) {
-            return String.format("%.1f KB", kb);
-        }
-        return String.format("%.2f MB", kb / 1024.0);
     }
 
     private static void drawClipped(Graphics2D g, String text, int tx, int ty, int maxW) {
@@ -117,17 +112,5 @@ public final class TreemapPngRenderer {
             t = t.substring(0, t.length() - 1);
         }
         g.drawString(t + "…", tx, ty);
-    }
-
-    private static Color colorFor(String key, int depth) {
-        int h = Math.floorMod(key.hashCode(), 360);
-        float s = 0.35f + 0.08f * (depth % 3);
-        float b = 0.82f - 0.06f * (depth % 2);
-        return Color.getHSBColor(h / 360f, s, b);
-    }
-
-    private static Color contrastText(Color bg) {
-        double lum = (0.299 * bg.getRed() + 0.587 * bg.getGreen() + 0.114 * bg.getBlue()) / 255.0;
-        return lum > 0.6 ? new Color(30, 30, 30) : Color.WHITE;
     }
 }

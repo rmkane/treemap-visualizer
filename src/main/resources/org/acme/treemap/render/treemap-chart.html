@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@@TITLE_XML@@</title>
+  <style>
+    body { margin: 0; background: #1a1d23; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    h1 { color: #eee; margin: 12px 24px 8px; font-size: 18px; font-weight: 600; }
+    .wrap { padding: 0 0 24px; }
+    svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+    svg rect.cell {
+      stroke: rgba(0,0,0,0.35);
+      stroke-width: 1;
+      cursor: default;
+      vector-effect: non-scaling-stroke;
+      shape-rendering: crispEdges;
+      transition: filter 0.14s ease, stroke 0.14s ease, stroke-width 0.14s ease;
+    }
+    svg rect.cell.hovered {
+      filter: brightness(1.2) saturate(1.12) drop-shadow(0 0 6px rgba(255,220,120,0.45));
+      stroke: rgba(255, 214, 102, 0.98);
+      stroke-width: 3;
+    }
+    svg text { pointer-events: none; user-select: none; }
+    #tip {
+      position: fixed; display: none; pointer-events: none; z-index: 100;
+      background: #0f1115; color: #e8eaed; border: 1px solid #3a3f4b; border-radius: 8px;
+      padding: 10px 12px; font-size: 13px; line-height: 1.45; max-width: 320px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    #tip .coord { font-family: ui-monospace, monospace; font-size: 12px; color: #9ab; word-break: break-all; }
+    #tip .lbl { font-weight: 600; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>@@TITLE_XML@@</h1>
+  <div class="wrap">
+    <div id="tip"></div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="@@CANVAS_WIDTH@@" height="@@CANVAS_HEIGHT@@" viewBox="0 0 @@CANVAS_WIDTH@@ @@CANVAS_HEIGHT@@" role="img" aria-label="Dependency treemap">
+    <rect x="0" y="0" width="@@CANVAS_WIDTH@@" height="@@CANVAS_HEIGHT@@" fill="#1a1d23" aria-hidden="true"/>
+@@SVG_BODY@@
+    </svg>
+  </div>
+  <script>
+  (function () {
+    const tip = document.getElementById('tip');
+    const svg = document.querySelector('svg');
+    function clearHighlight() {
+      svg.querySelectorAll('rect.cell.hovered').forEach(function (el) { el.classList.remove('hovered'); });
+    }
+    function setHighlight(rect) {
+      clearHighlight();
+      if (rect) rect.classList.add('hovered');
+    }
+    function positionTip(e) {
+      if (tip.style.display !== 'block') return;
+      const x = e.clientX + 14, y = e.clientY + 14;
+      tip.style.left = Math.min(x, innerWidth - tip.offsetWidth - 8) + 'px';
+      tip.style.top = Math.min(y, innerHeight - tip.offsetHeight - 8) + 'px';
+    }
+    svg.addEventListener('mousemove', function (e) {
+      const r = e.target && e.target.closest && e.target.closest('rect.cell');
+      setHighlight(r);
+      if (r) {
+        tip.style.display = 'block';
+        tip.innerHTML = r.getAttribute('data-html-tip') || '';
+        positionTip(e);
+      } else {
+        tip.style.display = 'none';
+      }
+    });
+    svg.addEventListener('mouseleave', function () {
+      clearHighlight();
+      tip.style.display = 'none';
+    });
+  })();
+  </script>
+</body>
+</html>
