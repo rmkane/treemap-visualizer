@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Nested strip treemap (alternating slice-and-dice): children split the parent rectangle in proportion
- * to their weights. Deterministic and fills the area without overlap.
+ * Nested strip treemap (alternating slice-and-dice): children split the parent
+ * rectangle in proportion to their weights. Deterministic and fills the area
+ * without overlap.
  */
 public final class TreemapLayout {
 
-    private TreemapLayout() {}
+    private TreemapLayout() {
+    }
 
     /**
-     * Partitions {@code (x,y,w,h)} into one rectangle per weight. Splits along the horizontal axis when
-     * {@code rowIsHorizontal} is true (vertical cuts), else vertical axis (horizontal cuts).
+     * Partitions {@code (x,y,w,h)} into one rectangle per weight. Splits along the
+     * horizontal axis when {@code rowIsHorizontal} is true (vertical cuts), else
+     * vertical axis (horizontal cuts).
      */
     public static List<Rect> layoutStrip(
             double x, double y, double w, double h, boolean rowIsHorizontal, List<Double> weights) {
@@ -43,5 +46,6 @@ public final class TreemapLayout {
         return out;
     }
 
-    public record Rect(double x, double y, double w, double h) {}
+    public record Rect(double x, double y, double w, double h) {
+    }
 }

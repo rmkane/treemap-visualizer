@@ -1,15 +1,17 @@
 package org.acme.treemap.render;
 
-import org.acme.treemap.maven.DependencyNode;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Function;
 
+import org.acme.treemap.maven.DependencyNode;
+
 /**
- * Strategy for generating an output artifact from a dependency tree (PNG, HTML, JSON, YAML, etc.).
+ * Strategy for generating an output artifact from a dependency tree (PNG, HTML,
+ * JSON, YAML, etc.).
  * <p>
- * Add new formats by implementing this interface and registering the implementation in
+ * Add new formats by implementing this interface and registering the
+ * implementation in
  * {@link Generators#forOutputFormat(org.acme.treemap.OutputFormat)} (and extend
  * {@link org.acme.treemap.OutputFormat} if the CLI should select it).
  */
@@ -17,15 +19,17 @@ import java.util.function.Function;
 public interface Generator {
 
     /**
-     * @param root    dependency tree with {@link DependencyNode#selfSizeBytes()} populated
-     * @param options output options (destination, title, and optional canvas sizing)
+     * @param root    dependency tree with {@link DependencyNode#selfSizeBytes()}
+     *                populated
+     * @param options output options (destination, title, and optional canvas
+     *                sizing)
      */
     void generate(DependencyNode root, OutputOptions options) throws IOException;
 
     /**
-     * Convenience overload that configures {@link OutputOptions.Builder} with a function returning the
-     * (possibly same) builder, enabling fluent expression lambdas like
-     * {@code g.generate(root, b -> b.output(path).title("foo"))}.
+     * Convenience overload that configures {@link OutputOptions.Builder} with a
+     * function returning the (possibly same) builder, enabling fluent expression
+     * lambdas like {@code g.generate(root, b -> b.output(path).title("foo"))}.
      */
     default void generate(
             DependencyNode root, Function<OutputOptions.Builder, OutputOptions.Builder> configureFn)
@@ -36,7 +40,8 @@ public interface Generator {
     }
 
     /**
-     * Function-style overload that starts from existing options and returns an updated builder.
+     * Function-style overload that starts from existing options and returns an
+     * updated builder.
      */
     default void generate(
             DependencyNode root,

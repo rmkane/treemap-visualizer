@@ -33,8 +33,9 @@ public final class DependencyNode {
     }
 
     /**
-     * Sum of {@link #selfSizeBytes()} for every distinct {@link ArtifactKey} in this subtree
-     * (avoids double-counting when the same GAV appears on multiple tree paths).
+     * Sum of {@link #selfSizeBytes()} for every distinct {@link ArtifactKey} in
+     * this subtree (avoids double-counting when the same GAV appears on multiple
+     * tree paths).
      */
     public long subtreeUniqueBytes() {
         Set<ArtifactKey> seen = new HashSet<>();

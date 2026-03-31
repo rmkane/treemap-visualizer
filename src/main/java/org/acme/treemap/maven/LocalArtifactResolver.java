@@ -8,7 +8,10 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/** Resolves artifact files under the local Maven repository and reports size on disk. */
+/**
+ * Resolves artifact files under the local Maven repository and reports size on
+ * disk.
+ */
 public final class LocalArtifactResolver {
 
     private final Path localRepository;
@@ -46,8 +49,8 @@ public final class LocalArtifactResolver {
     }
 
     public Optional<Path> findPath(ArtifactKey key) {
-        Path base =
-                localRepository.resolve(key.groupId().replace('.', '/')).resolve(key.artifactId()).resolve(key.version());
+        Path base = localRepository.resolve(key.groupId().replace('.', '/')).resolve(key.artifactId())
+                .resolve(key.version());
 
         String ext = extensionForPackaging(key.packaging());
         Path exact = base.resolve(key.fileStem() + "." + ext);
@@ -64,9 +67,9 @@ public final class LocalArtifactResolver {
 
     private static String extensionForPackaging(String packaging) {
         return switch (packaging) {
-            case "jar", "war", "ear", "bundle" -> "jar";
-            case "pom" -> "pom";
-            default -> packaging;
+        case "jar", "war", "ear", "bundle" -> "jar";
+        case "pom" -> "pom";
+        default -> packaging;
         };
     }
 

@@ -1,14 +1,5 @@
 package org.acme.treemap;
 
-import org.acme.treemap.maven.DependencyNode;
-import org.acme.treemap.maven.DependencyTreeCache;
-import org.acme.treemap.maven.DependencyTreeParser;
-import org.acme.treemap.maven.LocalArtifactResolver;
-import org.acme.treemap.maven.MavenInvoker;
-import org.acme.treemap.maven.PomChecksum;
-import org.acme.treemap.render.Generator;
-import org.acme.treemap.render.Generators;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -18,37 +9,36 @@ import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.acme.treemap.maven.DependencyNode;
+import org.acme.treemap.maven.DependencyTreeCache;
+import org.acme.treemap.maven.DependencyTreeParser;
+import org.acme.treemap.maven.LocalArtifactResolver;
+import org.acme.treemap.maven.MavenInvoker;
+import org.acme.treemap.maven.PomChecksum;
+import org.acme.treemap.render.Generator;
+import org.acme.treemap.render.Generators;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(
-        name = "treemap-visualize",
-        description = "Treemap of Maven dependency sizes: PNG, HTML, JSON, or YAML (local ~/.m2 for sizes).",
-        mixinStandardHelpOptions = true)
+@Command(name = "treemap-visualize", description = "Treemap of Maven dependency sizes: PNG, HTML, JSON, or YAML (local ~/.m2 for sizes).", mixinStandardHelpOptions = true)
 public final class Main implements Callable<Integer> {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     private static final long NANOS_PER_MILLISECOND = 1_000_000L;
 
-    @Parameters(
-            index = "0",
-            arity = "0..1",
-            defaultValue = ".",
-            description = "Maven project directory (must contain pom.xml)")
+    @Parameters(index = "0", arity = "0..1", defaultValue = ".", description = "Maven project directory (must contain pom.xml)")
     private Path projectDir;
 
-    @Option(
-            names = {"-o", "--output"},
-            description = "Output path (optional). Default: target/<artifactId>.<ext>")
+    @Option(names = { "-o", "--output" }, description = "Output path (optional). Default: target/<artifactId>.<ext>")
     private Path output;
 
-    @Option(
-            names = {"--format"},
-            converter = OutputFormatConverter.class,
-            description = "png | html | json | yaml (default: infer from --output extension)")
+    @Option(names = {
+            "--format" }, converter = OutputFormatConverter.class, description = "png | html | json | yaml (default: infer from --output extension)")
     private OutputFormat format;
 
     @Option(names = "--width", defaultValue = "1200", description = "Canvas width in pixels")
@@ -57,14 +47,10 @@ public final class Main implements Callable<Integer> {
     @Option(names = "--height", defaultValue = "800", description = "Canvas height in pixels")
     private int height;
 
-    @Option(
-            names = "--refresh",
-            description = "Skip dependency tree cache and re-run Maven (updates cache)")
+    @Option(names = "--refresh", description = "Skip dependency tree cache and re-run Maven (updates cache)")
     private boolean refresh;
 
-    @Option(
-            names = "--cache-dir",
-            description = "Dependency tree cache directory (default: XDG_CACHE_HOME/.../treemap-visualize/dependency-tree)")
+    @Option(names = "--cache-dir", description = "Dependency tree cache directory (default: XDG_CACHE_HOME/.../treemap-visualize/dependency-tree)")
     private Path cacheDir;
 
     public static void main(String[] args) {
@@ -104,10 +90,10 @@ public final class Main implements Callable<Integer> {
             return output.toAbsolutePath().normalize();
         }
         String ext = switch (outFormat) {
-            case HTML -> "html";
-            case JSON -> "json";
-            case PNG -> "png";
-            case YAML -> "yaml";
+        case HTML -> "html";
+        case JSON -> "json";
+        case PNG -> "png";
+        case YAML -> "yaml";
         };
         return project.resolve("target").resolve(artifactId + "." + ext).toAbsolutePath().normalize();
     }
@@ -126,8 +112,8 @@ public final class Main implements Callable<Integer> {
         MavenInvoker maven = new MavenInvoker(project);
 
         String pomDigest = PomChecksum.sha256Hex(pom);
-        Path cacheRoot =
-                cacheDir != null ? cacheDir.toAbsolutePath().normalize() : DependencyTreeCache.defaultDirectory();
+        Path cacheRoot = cacheDir != null ? cacheDir.toAbsolutePath().normalize()
+                : DependencyTreeCache.defaultDirectory();
         DependencyTreeCache treeCache = new DependencyTreeCache(cacheRoot);
 
         List<String> lines;

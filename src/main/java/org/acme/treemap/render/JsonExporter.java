@@ -1,13 +1,13 @@
 package org.acme.treemap.render;
 
-import org.acme.treemap.export.TreemapSnapshot;
-import org.acme.treemap.export.TreemapSnapshots;
-import org.acme.treemap.maven.DependencyNode;
+import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import java.io.IOException;
+import org.acme.treemap.export.TreemapSnapshot;
+import org.acme.treemap.export.TreemapSnapshots;
+import org.acme.treemap.maven.DependencyNode;
 
 /** Writes {@link TreemapSnapshot} as indented JSON. */
 public final class JsonExporter implements Generator {

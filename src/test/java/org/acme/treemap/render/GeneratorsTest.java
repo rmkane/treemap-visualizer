@@ -2,8 +2,9 @@ package org.acme.treemap.render;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import org.acme.treemap.OutputFormat;
 import org.junit.jupiter.api.Test;
+
+import org.acme.treemap.OutputFormat;
 
 class GeneratorsTest {
 

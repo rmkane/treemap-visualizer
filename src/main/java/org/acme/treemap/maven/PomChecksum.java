@@ -10,7 +10,8 @@ import java.util.HexFormat;
 /** SHA-256 fingerprint of a POM file (for cache invalidation). */
 public final class PomChecksum {
 
-    private PomChecksum() {}
+    private PomChecksum() {
+    }
 
     public static String sha256Hex(Path pom) throws IOException {
         try {

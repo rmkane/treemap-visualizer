@@ -1,10 +1,5 @@
 package org.acme.treemap.render;
 
-import org.acme.treemap.maven.DependencyNode;
-import org.acme.treemap.util.ColorUtil;
-import org.acme.treemap.util.RgbColor;
-import org.acme.treemap.util.SizeFormatUtil;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -16,7 +11,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
 import javax.imageio.ImageIO;
+
+import org.acme.treemap.maven.DependencyNode;
+import org.acme.treemap.util.ColorUtil;
+import org.acme.treemap.util.RgbColor;
+import org.acme.treemap.util.SizeFormatUtil;
 
 /** Generates a dependency tree as a nested treemap PNG. */
 public final class PngRenderer implements Generator {
@@ -24,7 +25,8 @@ public final class PngRenderer implements Generator {
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
 
-    public PngRenderer() {}
+    public PngRenderer() {
+    }
 
     @Override
     public void generate(DependencyNode root, OutputOptions options) throws IOException {

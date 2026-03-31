@@ -8,18 +8,22 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Parses {@code mvn dependency:tree} text lines into a {@link DependencyNode} tree. */
+/**
+ * Parses {@code mvn dependency:tree} text lines into a {@link DependencyNode}
+ * tree.
+ */
 public final class DependencyTreeParser {
 
     private static final Pattern INFO_LINE = Pattern.compile("^\\[INFO\\] (.*)$");
     /**
-     * Tree drawing: repeated {@code |  } or {@code   } (three spaces) per depth level, then {@code +- }
-     * or {@code \- }. Maven uses spaces under a last sibling instead of {@code |  } for the same depth.
+     * Tree drawing: repeated {@code |  } or {@code   } (three spaces) per depth
+     * level, then {@code +- } or {@code \- }. Maven uses spaces under a last
+     * sibling instead of {@code |  } for the same depth.
      */
-    private static final Pattern TREE_CHILD =
-            Pattern.compile("^((?:\\|  |   )*)([+\\\\]- )(.*)$");
+    private static final Pattern TREE_CHILD = Pattern.compile("^((?:\\|  |   )*)([+\\\\]- )(.*)$");
 
-    private DependencyTreeParser() {}
+    private DependencyTreeParser() {
+    }
 
     public static DependencyNode parse(List<String> lines) {
         List<ParsedLine> parsed = new ArrayList<>();
@@ -94,8 +98,8 @@ public final class DependencyTreeParser {
     }
 
     /**
-     * Accepts {@code g:a:packaging:version}, {@code g:a:packaging:version:scope}, or
-     * {@code g:a:packaging:classifier:version:scope}.
+     * Accepts {@code g:a:packaging:version}, {@code g:a:packaging:version:scope},
+     * or {@code g:a:packaging:classifier:version:scope}.
      */
     static ArtifactKey parseCoordinates(String coord) {
         String[] p = coord.split(":");
@@ -111,5 +115,6 @@ public final class DependencyTreeParser {
         return null;
     }
 
-    private record ParsedLine(int depth, ArtifactKey key) {}
+    private record ParsedLine(int depth, ArtifactKey key) {
+    }
 }

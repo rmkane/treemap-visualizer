@@ -4,19 +4,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.acme.treemap.maven.ArtifactKey;
 import org.acme.treemap.maven.DependencyNode;
 import org.acme.treemap.render.JsonExporter;
 import org.acme.treemap.render.YamlExporter;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 class JsonYamlExportTest {
 
@@ -31,8 +32,7 @@ class JsonYamlExportTest {
                         .height(80)
                         .title("Title"));
 
-        TreemapSnapshot read =
-                new ObjectMapper().readValue(out.toFile(), TreemapSnapshot.class);
+        TreemapSnapshot read = new ObjectMapper().readValue(out.toFile(), TreemapSnapshot.class);
         String text = Files.readString(out);
         assertEquals("Title", read.title());
         assertNull(read.width());

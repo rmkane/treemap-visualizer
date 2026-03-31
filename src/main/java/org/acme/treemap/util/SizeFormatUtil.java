@@ -5,7 +5,8 @@ import java.util.Locale;
 /** Generic byte-size formatting helpers. */
 public final class SizeFormatUtil {
 
-    private SizeFormatUtil() {}
+    private SizeFormatUtil() {
+    }
 
     public static String humanBytes(long bytes) {
         if (bytes < 1024) {

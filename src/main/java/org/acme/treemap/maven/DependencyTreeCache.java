@@ -10,9 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Caches raw {@code mvn dependency:tree} stdout keyed by {@link PomChecksum} of {@code pom.xml}.
- * Default directory follows XDG Base Directory: {@code $XDG_CACHE_HOME/treemap-visualize/dependency-tree}
- * or {@code ~/.cache/treemap-visualize/dependency-tree}.
+ * Caches raw {@code mvn dependency:tree} stdout keyed by {@link PomChecksum} of
+ * {@code pom.xml}. Default directory follows XDG Base Directory:
+ * {@code $XDG_CACHE_HOME/treemap-visualize/dependency-tree} or
+ * {@code ~/.cache/treemap-visualize/dependency-tree}.
  */
 public final class DependencyTreeCache {
 
@@ -28,8 +29,7 @@ public final class DependencyTreeCache {
             throw new IllegalStateException("user.home is not set");
         }
         String xdg = System.getenv("XDG_CACHE_HOME");
-        Path base =
-                (xdg != null && !xdg.isEmpty()) ? Path.of(xdg) : Path.of(home, ".cache");
+        Path base = (xdg != null && !xdg.isEmpty()) ? Path.of(xdg) : Path.of(home, ".cache");
         return base.resolve("treemap-visualize").resolve("dependency-tree");
     }
 

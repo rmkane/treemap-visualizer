@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/** Runs {@code mvn} (or project {@code mvnw}) in a directory and captures stdout. */
+/**
+ * Runs {@code mvn} (or project {@code mvnw}) in a directory and captures
+ * stdout.
+ */
 public final class MavenInvoker {
 
     private static final int TIMEOUT_MINUTES = 15;
@@ -50,8 +53,8 @@ public final class MavenInvoker {
         Process p = pb.start();
 
         List<String> lines = new ArrayList<>();
-        try (BufferedReader reader =
-                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
@@ -73,7 +76,8 @@ public final class MavenInvoker {
     }
 
     /**
-     * Resolves {@code settings.localRepository} by running Maven in {@code projectDir}.
+     * Resolves {@code settings.localRepository} by running Maven in
+     * {@code projectDir}.
      */
     public Path resolveLocalRepository() throws IOException, InterruptedException {
         List<String> cmd = new ArrayList<>(mvnCommand);
@@ -91,8 +95,8 @@ public final class MavenInvoker {
         Process p = pb.start();
 
         StringBuilder out = new StringBuilder();
-        try (BufferedReader reader =
-                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 out.append(line).append('\n');

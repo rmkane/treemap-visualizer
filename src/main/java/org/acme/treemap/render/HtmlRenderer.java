@@ -1,10 +1,5 @@
 package org.acme.treemap.render;
 
-import org.acme.treemap.maven.DependencyNode;
-import org.acme.treemap.util.ColorUtil;
-import org.acme.treemap.util.RgbColor;
-import org.acme.treemap.util.SizeFormatUtil;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -14,21 +9,39 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/** Generates an interactive HTML page with SVG treemap, hover highlight, and tooltips. */
+import org.acme.treemap.maven.DependencyNode;
+import org.acme.treemap.util.ColorUtil;
+import org.acme.treemap.util.RgbColor;
+import org.acme.treemap.util.SizeFormatUtil;
+
+/**
+ * Generates an interactive HTML page with SVG treemap, hover highlight, and
+ * tooltips.
+ */
 public final class HtmlRenderer implements Generator {
 
-    /** Classpath resource path (alongside this class): {@code src/main/resources/org/acme/treemap/render/treemap-chart.html}. */
+    /**
+     * Classpath resource path (alongside this class):
+     * {@code src/main/resources/org/acme/treemap/render/treemap-chart.html}.
+     */
     public static final String CHART_TEMPLATE_RESOURCE = "treemap-chart.html";
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
-    /** Inset per edge so neighboring cells leave a gap (stroke/hover read more clearly). */
+    /**
+     * Inset per edge so neighboring cells leave a gap (stroke/hover read more
+     * clearly).
+     */
     private static final int CELL_GUTTER_PX = 1;
 
-    /** Cached classpath template from {@code treemap-chart.html} beside this class in resources. */
+    /**
+     * Cached classpath template from {@code treemap-chart.html} beside this class
+     * in resources.
+     */
     private static volatile String templateCache;
 
-    public HtmlRenderer() {}
+    public HtmlRenderer() {
+    }
 
     @Override
     public void generate(DependencyNode root, OutputOptions options) throws IOException {
@@ -100,7 +113,8 @@ public final class HtmlRenderer implements Generator {
         }
     }
 
-    private static void appendLeaf(StringBuilder svg, DependencyNode node, double x, double y, double w, double h, int depth) {
+    private static void appendLeaf(StringBuilder svg, DependencyNode node, double x, double y, double w, double h,
+            int depth) {
         int ix = (int) Math.floor(x);
         int iy = (int) Math.floor(y);
         int iw = Math.max(1, (int) Math.ceil(x + w) - ix);

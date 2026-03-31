@@ -7,10 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import org.acme.treemap.maven.ArtifactKey;
-import org.acme.treemap.maven.DependencyNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import org.acme.treemap.maven.ArtifactKey;
+import org.acme.treemap.maven.DependencyNode;
 
 class GeneratorOverloadsTest {
 
