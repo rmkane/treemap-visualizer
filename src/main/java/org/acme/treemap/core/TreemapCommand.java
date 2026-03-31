@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.acme.treemap.core.maven.DependencyNode;
+import org.acme.treemap.core.maven.DependencyScopePruner;
 import org.acme.treemap.core.maven.DependencyTreeCache;
 import org.acme.treemap.core.maven.DependencyTreeParser;
 import org.acme.treemap.core.maven.LocalArtifactResolver;
@@ -146,6 +147,10 @@ public class TreemapCommand implements Callable<Integer> {
 
         long analyzeStartNs = System.nanoTime();
         DependencyNode root = DependencyTreeParser.parse(lines);
+        int pruned = DependencyScopePruner.pruneNonPackagedScopes(root);
+        if (pruned > 0) {
+            log.info("Pruned {} non-packaged dependency node(s) (test/provided scopes)", pruned);
+        }
         new LocalArtifactResolver(localRepo).applySizes(root);
         long analyzeElapsedMs = (System.nanoTime() - analyzeStartNs) / NANOS_PER_MILLISECOND;
         log.info("Tree parse + artifact sizing time: {} ms", analyzeElapsedMs);
