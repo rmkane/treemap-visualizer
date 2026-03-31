@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import org.acme.treemap.core.OutputFormat;
+
 import picocli.CommandLine;
 
 class MainFormatTest {
