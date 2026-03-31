@@ -1,6 +1,7 @@
 package org.acme.treemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.nio.file.Path;
 
@@ -66,5 +67,17 @@ class MainFormatTest {
         Main m = new Main();
         Path out = m.resolvedOutput(Path.of("/tmp/acme-api-mvc"), OutputFormat.HTML);
         assertEquals(Path.of("/tmp/acme-api-mvc/target/treemap-acme-api-mvc.html").toAbsolutePath().normalize(), out);
+    }
+
+    @Test
+    void acceptsLowercaseAnalysisMode() {
+        Main m = new Main();
+        assertDoesNotThrow(() -> new CommandLine(m).parseArgs("--analysis-mode", "dependency"));
+    }
+
+    @Test
+    void acceptsLowercaseViewMode() {
+        Main m = new Main();
+        assertDoesNotThrow(() -> new CommandLine(m).parseArgs("--view", "flat"));
     }
 }

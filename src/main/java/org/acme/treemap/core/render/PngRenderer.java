@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public final class PngRenderer implements Generator {
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
+    private static final int MIN_MICRO_LABEL_FONT_PX = 7;
 
     public PngRenderer() {
     }
@@ -90,7 +92,12 @@ public final class PngRenderer implements Generator {
         g.setStroke(new BasicStroke(1f));
         g.drawRect(ix, iy, iw, ih);
 
-        if (Math.min(iw, ih) >= MIN_LABEL_PX) {
+        if (ih > iw) {
+            g.setColor(ColorUtil.contrastText(fillRgb).toAwtColor());
+            String label = shortenLabel(node.key().artifactId(), Math.max(3, ih / 7));
+            int fs = Math.max(9, Math.min(13, ih / 10));
+            drawVerticalLabel(g, label, ix, iy, iw, ih, fs);
+        } else if (Math.min(iw, ih) >= MIN_LABEL_PX) {
             g.setColor(ColorUtil.contrastText(fillRgb).toAwtColor());
             String label = node.key().artifactId();
             String sub = SizeFormatUtil.humanBytes(node.selfSizeBytes());
@@ -100,7 +107,36 @@ public final class PngRenderer implements Generator {
             g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, Math.min(11, iw / 14)));
             fm = g.getFontMetrics();
             drawClipped(g, sub, ix + 4, iy + fm.getAscent() + 20, iw - 8);
+        } else {
+            g.setColor(ColorUtil.contrastText(fillRgb).toAwtColor());
+            int fs = Math.max(MIN_MICRO_LABEL_FONT_PX, Math.min(11, Math.min(iw, ih) - 1));
+            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, fs));
+            String compact = shortenLabel(node.key().artifactId(), Math.max(1, iw / 6));
+            int tx = ix + 2;
+            int ty = iy + Math.max(fs, 8);
+            drawClipped(g, compact, tx, ty, Math.max(1, iw - 4));
         }
+    }
+
+    private static void drawVerticalLabel(Graphics2D g, String text, int ix, int iy, int iw, int ih, int fontSize) {
+        Font originalFont = g.getFont();
+        AffineTransform originalTx = g.getTransform();
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, fontSize));
+        int cx = ix + (iw / 2);
+        int cy = iy + ih - 6;
+        g.rotate(-Math.PI / 2, cx, cy);
+        FontMetrics fm = g.getFontMetrics();
+        String t = text;
+        int maxW = Math.max(1, ih - 10);
+        while (t.length() > 3 && fm.stringWidth(t + "…") > maxW) {
+            t = t.substring(0, t.length() - 1);
+        }
+        if (!t.equals(text)) {
+            t = t + "…";
+        }
+        g.drawString(t, cx, cy);
+        g.setTransform(originalTx);
+        g.setFont(originalFont);
     }
 
     private static void drawClipped(Graphics2D g, String text, int tx, int ty, int maxW) {
@@ -114,5 +150,19 @@ public final class PngRenderer implements Generator {
             t = t.substring(0, t.length() - 1);
         }
         g.drawString(t + "…", tx, ty);
+    }
+
+    private static String shortenLabel(String artifactId, int maxChars) {
+        if (artifactId == null || artifactId.isEmpty()) {
+            return "?";
+        }
+        int limit = Math.max(1, maxChars);
+        if (artifactId.length() <= limit) {
+            return artifactId;
+        }
+        if (limit <= 2) {
+            return artifactId.substring(0, 1);
+        }
+        return artifactId.substring(0, limit - 1) + "…";
     }
 }

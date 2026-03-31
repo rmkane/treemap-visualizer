@@ -58,14 +58,28 @@ public class TreemapCommand implements Callable<Integer> {
     private Path cacheDir;
 
     @Option(names = {
-            "--analysis-mode" }, description = "dependency | packaged | auto (default: auto)")
+            "--analysis-mode" }, converter = AnalysisModeConverter.class, description = "dependency | packaged | auto (default: auto)")
     private AnalysisMode analysisMode = AnalysisMode.AUTO;
 
     @Option(names = "--packaged-jar", description = "Output JAR to inspect in packaged mode (default: auto-detect in target/)")
     private Path packagedJar;
 
-    @Option(names = "--view", description = "tree | flat (default: tree)")
+    @Option(names = "--view", converter = ViewModeConverter.class, description = "tree | flat (default: tree)")
     private ViewMode view = ViewMode.TREE;
+
+    public static final class AnalysisModeConverter implements CommandLine.ITypeConverter<AnalysisMode> {
+        @Override
+        public AnalysisMode convert(String value) {
+            return AnalysisMode.valueOf(value.toUpperCase(Locale.ROOT));
+        }
+    }
+
+    public static final class ViewModeConverter implements CommandLine.ITypeConverter<ViewMode> {
+        @Override
+        public ViewMode convert(String value) {
+            return ViewMode.valueOf(value.toUpperCase(Locale.ROOT));
+        }
+    }
 
     public static final class OutputFormatConverter implements CommandLine.ITypeConverter<OutputFormat> {
         @Override

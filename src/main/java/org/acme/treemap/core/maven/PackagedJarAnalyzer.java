@@ -1,6 +1,7 @@
 package org.acme.treemap.core.maven;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,9 +37,15 @@ public final class PackagedJarAnalyzer {
         }
         List<DependencyNode> nodes = flatten(root);
         Map<ArtifactKey, DependencyNode> byKey = new HashMap<>();
+        Map<String, List<ArtifactKey>> ownersByJarName = new HashMap<>();
         for (DependencyNode node : nodes) {
             node.setSelfSizeBytes(0L);
             byKey.put(node.key(), node);
+            Optional<Path> p = resolver.findPath(node.key());
+            if (p.isPresent()) {
+                String fileName = p.get().getFileName().toString();
+                ownersByJarName.computeIfAbsent(fileName, k -> new ArrayList<>()).add(node.key());
+            }
         }
 
         Map<String, List<ArtifactKey>> ownersByEntry = buildOwnersIndex(nodes);
@@ -51,11 +58,18 @@ public final class PackagedJarAnalyzer {
                 if (e.isDirectory()) {
                     continue;
                 }
-                long size = entrySize(e);
+                long size = entrySize(out, e);
                 if (size <= 0) {
                     continue;
                 }
-                List<ArtifactKey> owners = ownersByEntry.get(e.getName());
+                String entryName = e.getName();
+                if (isNoisyMetadataEntry(entryName)) {
+                    continue;
+                }
+                List<ArtifactKey> owners = ownersByEntry.get(entryName);
+                if (owners == null || owners.isEmpty()) {
+                    owners = ownersByJarName.get(nestedJarName(entryName));
+                }
                 if (owners == null || owners.isEmpty()) {
                     unknown += size;
                     continue;
@@ -63,11 +77,14 @@ public final class PackagedJarAnalyzer {
                 if (owners.size() > 1) {
                     overlapEntries++;
                 }
-                long perOwner = Math.max(1L, size / owners.size());
-                for (ArtifactKey k : owners) {
+                long perOwner = size / owners.size();
+                long remainder = size % owners.size();
+                for (int i = 0; i < owners.size(); i++) {
+                    ArtifactKey k = owners.get(i);
                     DependencyNode node = byKey.get(k);
                     if (node != null) {
-                        node.setSelfSizeBytes(node.selfSizeBytes() + perOwner);
+                        long share = perOwner + (i < remainder ? 1L : 0L);
+                        node.setSelfSizeBytes(node.selfSizeBytes() + share);
                     }
                 }
                 attributed += size;
@@ -104,6 +121,9 @@ public final class PackagedJarAnalyzer {
                     if (e.isDirectory()) {
                         continue;
                     }
+                    if (isNoisyMetadataEntry(e.getName())) {
+                        continue;
+                    }
                     ownersByEntry.computeIfAbsent(e.getName(), k -> new ArrayList<>()).add(node.key());
                 }
             } catch (IOException ex) {
@@ -127,9 +147,50 @@ public final class PackagedJarAnalyzer {
         return out;
     }
 
-    private static long entrySize(JarEntry e) {
+    private static long entrySize(JarFile jar, JarEntry e) throws IOException {
         long s = e.getSize();
-        return s < 0 ? 0 : s;
+        if (s >= 0) {
+            return s;
+        }
+        long compressed = e.getCompressedSize();
+        if (compressed >= 0) {
+            return compressed;
+        }
+        // Fallback for jars where central directory size is unavailable.
+        try (InputStream in = jar.getInputStream(e)) {
+            long total = 0;
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) >= 0) {
+                total += n;
+            }
+            return total;
+        }
+    }
+
+    private static String nestedJarName(String entryName) {
+        if (!entryName.endsWith(".jar")) {
+            return "";
+        }
+        int idx = entryName.lastIndexOf('/');
+        return idx >= 0 ? entryName.substring(idx + 1) : entryName;
+    }
+
+    private static boolean isNoisyMetadataEntry(String entryName) {
+        if (entryName == null) {
+            return true;
+        }
+        String n = entryName;
+        if ("META-INF/MANIFEST.MF".equals(n)) {
+            return true;
+        }
+        if (n.startsWith("META-INF/LICENSE") || n.startsWith("META-INF/NOTICE")) {
+            return true;
+        }
+        if ("module-info.class".equals(n) || n.endsWith("/module-info.class")) {
+            return true;
+        }
+        return false;
     }
 
     private static long safeMtime(Path p) {

@@ -28,8 +28,6 @@ public final class HtmlRenderer implements Generator {
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
-    private static final int MAX_HORIZONTAL_LABEL_WIDTH_PX = 44;
-    private static final int MIN_VERTICAL_LABEL_HEIGHT_PX = 72;
     private static final int MIN_MICRO_LABEL_FONT_PX = 7;
     /**
      * Inset per edge so neighboring cells leave a gap (stroke/hover read more
@@ -149,28 +147,54 @@ public final class HtmlRenderer implements Generator {
         String fill = fillColor.toCssRgb();
         String tipPayload = buildTipHtml(node, coord, parentCoord);
         String ariaLabel = buildAriaLabel(node, coord, parentCoord);
+        String parentAttr = parentCoord == null ? "" : parentCoord;
 
         svg.append(String.format(
                 Locale.ROOT,
-                "<rect class=\"cell\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" data-html-tip=\"%s\" aria-label=\"%s\" role=\"img\">",
+                "<g class=\"cell-group\" data-parent-coord=\"%s\" data-html-tip=\"%s\" aria-label=\"%s\" role=\"img\">",
+                escapeAttr(parentAttr),
+                escapeAttr(tipPayload),
+                escapeAttr(ariaLabel)));
+        svg.append(String.format(
+                Locale.ROOT,
+                "<rect class=\"cell\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\">",
                 ix,
                 iy,
                 iw,
                 ih,
-                fill,
-                escapeAttr(tipPayload),
-                escapeAttr(ariaLabel)));
-        svg.append("</rect>\n");
+                fill));
+        svg.append("</rect>");
 
-        if (Math.min(iw, ih) >= MIN_LABEL_PX) {
-            String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
+        if (ih > iw) {
+            // For tall cells, prefer rotated labels for readability.
+            RgbColor textRgb = ColorUtil.contrastText(fillColor);
+            String textColor = textRgb.toCssRgb();
+            String labelClass = textRgb.red() >= 200 ? "label-light" : "label-dark";
+            String artifact = xmlText(shortenLabel(node.key().artifactId(), ih / 7));
+            int fs = Math.max(9, Math.min(13, ih / 10));
+            int cx = ix + (iw / 2);
+            int cy = iy + ih - 6;
+            svg.append(String.format(
+                    Locale.ROOT,
+                    "<g transform=\"translate(%d,%d) rotate(-90)\"><text class=\"%s\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" text-anchor=\"start\">%s</text></g>",
+                    cx,
+                    cy,
+                    labelClass,
+                    textColor,
+                    fs,
+                    artifact));
+        } else if (Math.min(iw, ih) >= MIN_LABEL_PX) {
+            RgbColor textRgb = ColorUtil.contrastText(fillColor);
+            String textColor = textRgb.toCssRgb();
+            String labelClass = textRgb.red() >= 200 ? "label-light" : "label-dark";
             String artifact = xmlText(node.key().artifactId());
             String sizeLabel = xmlText(SizeFormatUtil.humanBytes(node.selfSizeBytes()));
             int fs = Math.max(9, Math.min(14, iw / 12));
             int fs2 = Math.max(8, Math.min(11, iw / 14));
             svg.append(String.format(
                     Locale.ROOT,
-                    "<text x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\">%s</text>\n",
+                    "<text class=\"%s\" x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\">%s</text>\n",
+                    labelClass,
                     ix + 4,
                     iy + 4 + fs,
                     textColor,
@@ -178,30 +202,18 @@ public final class HtmlRenderer implements Generator {
                     artifact));
             svg.append(String.format(
                     Locale.ROOT,
-                    "<text x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" opacity=\"0.9\">%s</text>\n",
+                    "<text class=\"%s\" x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" opacity=\"0.9\">%s</text>\n",
+                    labelClass,
                     ix + 4,
                     iy + 4 + fs + fs2 + 2,
                     textColor,
                     fs2,
                     sizeLabel));
-        } else if (iw <= MAX_HORIZONTAL_LABEL_WIDTH_PX && ih >= MIN_VERTICAL_LABEL_HEIGHT_PX) {
-            // Tall/narrow cells can still carry context when we rotate labels.
-            String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
-            String artifact = xmlText(shortenLabel(node.key().artifactId(), ih / 7));
-            int fs = Math.max(9, Math.min(13, ih / 10));
-            int cx = ix + (iw / 2);
-            int cy = iy + ih - 6;
-            svg.append(String.format(
-                    Locale.ROOT,
-                    "<g transform=\"translate(%d,%d) rotate(-90)\"><text fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" text-anchor=\"start\">%s</text></g>\n",
-                    cx,
-                    cy,
-                    textColor,
-                    fs,
-                    artifact));
         } else {
             // Always render at least a compact label so every cell has visible text.
-            String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
+            RgbColor textRgb = ColorUtil.contrastText(fillColor);
+            String textColor = textRgb.toCssRgb();
+            String labelClass = textRgb.red() >= 200 ? "label-light" : "label-dark";
             int fs = Math.max(MIN_MICRO_LABEL_FONT_PX, Math.min(11, Math.min(iw, ih) - 1));
             String compact = shortenLabel(node.key().artifactId(), Math.max(1, iw / 6));
             String label = xmlText(compact);
@@ -209,28 +221,40 @@ public final class HtmlRenderer implements Generator {
             int yLabel = iy + Math.max(fs, 8);
             svg.append(String.format(
                     Locale.ROOT,
-                    "<text x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" opacity=\"0.92\">%s</text>\n",
+                    "<text class=\"%s\" x=\"%d\" y=\"%d\" fill=\"%s\" font-size=\"%d\" font-family=\"system-ui,sans-serif\" opacity=\"0.92\">%s</text>\n",
+                    labelClass,
                     xLabel,
                     yLabel,
                     textColor,
                     fs,
                     label));
         }
+        svg.append("</g>\n");
     }
 
     private static String buildTipHtml(DependencyNode node, String coord, String parentCoord) {
         String parent = parentCoord == null ? "(root)" : parentCoord;
+        String self = "JAR on disk: "
+                + SizeFormatUtil.humanBytes(node.selfSizeBytes())
+                + " ("
+                + node.selfSizeBytes()
+                + " B)";
+        String subtree = "Subtree (unique): "
+                + SizeFormatUtil.humanBytes(node.subtreeUniqueBytes())
+                + " ("
+                + node.subtreeUniqueBytes()
+                + " B)";
         return "<div class=\"lbl\">"
                 + escapeForHtmlFragment(node.key().artifactId())
-                + "</div><div class=\"coord\">"
+                + "</div><div class=\"row\"><span class=\"k\">Coord</span><span class=\"v coord\">"
                 + escapeForHtmlFragment(coord)
-                + "</div><div class=\"parent\"><span class=\"k\">Parent</span>"
+                + "</span></div><div class=\"row\"><span class=\"k\">Parent</span><span class=\"v\">"
                 + escapeForHtmlFragment(parent)
-                + "</div><div>"
-                + escapeForHtmlFragment("JAR on disk: " + SizeFormatUtil.humanBytes(node.selfSizeBytes()))
-                + "</div><div>"
-                + escapeForHtmlFragment("Subtree (unique): " + SizeFormatUtil.humanBytes(node.subtreeUniqueBytes()))
-                + "</div>";
+                + "</span></div><div class=\"sep\"></div><div class=\"row\"><span class=\"k\">Self</span><span class=\"v\">"
+                + escapeForHtmlFragment(self)
+                + "</span></div><div class=\"row\"><span class=\"k\">Subtree</span><span class=\"v\">"
+                + escapeForHtmlFragment(subtree)
+                + "</span></div>";
     }
 
     private static String buildAriaLabel(DependencyNode node, String coord, String parentCoord) {

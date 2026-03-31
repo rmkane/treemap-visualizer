@@ -54,6 +54,43 @@ class PackagedJarAnalyzerTest {
         assertEquals(0L, result.overlapEntryCount());
     }
 
+    @Test
+    void attributesSpringBootNestedLibJarsByFileName(@TempDir Path tmp) throws Exception {
+        Path repo = tmp.resolve("repo");
+        ArtifactKey depA = key("g", "a", "1");
+        ArtifactKey depB = key("g", "b", "1");
+        Path depAJar = artifactJarPath(repo, depA);
+        Path depBJar = artifactJarPath(repo, depB);
+        writeJar(depAJar, "x/A.class", "a");
+        writeJar(depBJar, "x/B.class", "bb");
+
+        long depASize = Files.size(depAJar);
+        long depBSize = Files.size(depBJar);
+
+        DependencyNode root = node(key("g", "root", "1"));
+        DependencyNode a = node(depA);
+        DependencyNode b = node(depB);
+        root.children().add(a);
+        root.children().add(b);
+
+        Path out = tmp.resolve("boot.jar");
+        writeJar(
+                out,
+                "BOOT-INF/lib/a-1.jar",
+                "x".repeat((int) depASize),
+                "BOOT-INF/lib/b-1.jar",
+                "y".repeat((int) depBSize),
+                "META-INF/MANIFEST.MF",
+                "manifest");
+
+        PackagedJarAnalyzer.Result result = new PackagedJarAnalyzer(new LocalArtifactResolver(repo))
+                .applyPackagedSizes(root, out);
+
+        assertEquals(depASize, a.selfSizeBytes());
+        assertEquals(depBSize, b.selfSizeBytes());
+        assertEquals(0L, result.unknownBytes());
+    }
+
     private static ArtifactKey key(String group, String artifact, String version) {
         return new ArtifactKey(group, artifact, "jar", version, "compile", Optional.empty());
     }

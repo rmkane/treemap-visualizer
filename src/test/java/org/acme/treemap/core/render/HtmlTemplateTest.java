@@ -43,8 +43,10 @@ class HtmlTemplateTest {
         String html = Files.readString(out);
         assertTrue(html.contains("Test &amp; Co &lt;proj&gt;"), "title should be XML-escaped");
         assertTrue(html.contains("width=\"400\"") && html.contains("height=\"300\""));
+        assertTrue(html.contains("<g class=\"cell-group\""));
         assertTrue(html.contains("<rect class=\"cell\""));
         assertTrue(html.contains("aria-label=\""));
+        assertTrue(html.contains("data-parent-coord=\"g:a:jar:1:compile\""));
         assertTrue(!html.contains("</title></rect>"));
         assertTrue(html.contains("Parent: g:a:jar:1:compile"));
         assertTrue(!html.contains("@@"), "no leftover template placeholders");
