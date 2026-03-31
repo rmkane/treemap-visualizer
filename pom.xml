@@ -2,13 +2,13 @@
      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.acme</groupId>
-  <artifactId>treemap-visualize</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <groupId>org.acme.treemap</groupId>
+  <artifactId>treemap-visualizer</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>treemap-visualize</name>
-  <description>A tool to visualize treemaps</description>
+  <name>treemap-visualizer</name>
+  <description>A tool to visualize Maven dependency trees</description>
 
   <properties>
     <!-- General -->
