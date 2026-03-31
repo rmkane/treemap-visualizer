@@ -46,6 +46,9 @@ java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar [projectDir] [options]
 - `--height <px>` (visual formats)
 - `--refresh` (bypass dependency-tree cache)
 - `--cache-dir <path>`
+- `--analysis-mode <dependency|packaged|auto>` (default: `auto`)
+- `--packaged-jar <path>` (used by packaged analysis)
+- `--view <tree|flat>` (default: `tree`)
 
 If `--output` is omitted, the default is:
 
@@ -58,6 +61,7 @@ Examples:
 ```bash
 java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar --format html
 java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar --format json
+java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar --format html --view flat
 java -jar target/treemap-visualizer-0.1.0-SNAPSHOT.jar /path/to/project --format png -o /tmp/deps.png
 ```
 

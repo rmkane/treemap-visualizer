@@ -54,7 +54,7 @@ public final class HtmlRenderer implements Generator {
         double plotW = width - 2.0 * PADDING;
         double plotH = height - plotY - PADDING;
         if (plotW > 0 && plotH > 0) {
-            appendNodeSvg(svg, root, plotX, plotY, plotW, plotH, 0);
+            appendNodeSvg(svg, root, null, plotX, plotY, plotW, plotH, 0);
         }
 
         String safeTitle = xmlText(title);
@@ -92,10 +92,18 @@ public final class HtmlRenderer implements Generator {
     }
 
     private static void appendNodeSvg(
-            StringBuilder svg, DependencyNode node, double x, double y, double w, double h, int depth) {
+            StringBuilder svg,
+            DependencyNode node,
+            String parentCoord,
+            double x,
+            double y,
+            double w,
+            double h,
+            int depth) {
         List<DependencyNode> kids = new ArrayList<>(node.children());
+        String coord = coordinate(node);
         if (kids.isEmpty()) {
-            appendLeaf(svg, node, x, y, w, h, depth);
+            appendLeaf(svg, node, parentCoord, coord, x, y, w, h, depth);
             return;
         }
 
@@ -109,11 +117,19 @@ public final class HtmlRenderer implements Generator {
         List<TreemapLayout.Rect> rects = TreemapLayout.layoutStrip(x, y, w, h, horizontalStrip, weights);
         for (int i = 0; i < kids.size(); i++) {
             TreemapLayout.Rect r = rects.get(i);
-            appendNodeSvg(svg, kids.get(i), r.x(), r.y(), r.w(), r.h(), depth + 1);
+            appendNodeSvg(svg, kids.get(i), coord, r.x(), r.y(), r.w(), r.h(), depth + 1);
         }
     }
 
-    private static void appendLeaf(StringBuilder svg, DependencyNode node, double x, double y, double w, double h,
+    private static void appendLeaf(
+            StringBuilder svg,
+            DependencyNode node,
+            String parentCoord,
+            String coord,
+            double x,
+            double y,
+            double w,
+            double h,
             int depth) {
         int ix = (int) Math.floor(x);
         int iy = (int) Math.floor(y);
@@ -128,33 +144,20 @@ public final class HtmlRenderer implements Generator {
 
         RgbColor fillColor = ColorUtil.fillFromKey(node.key().shortLabel(), depth);
         String fill = fillColor.toCssRgb();
-        String coord = node.key().groupId()
-                + ":"
-                + node.key().artifactId()
-                + ":"
-                + node.key().packaging()
-                + ":"
-                + node.key().version()
-                + ":"
-                + node.key().scope();
-        String tipPayload = buildTipHtml(node, coord);
+        String tipPayload = buildTipHtml(node, coord, parentCoord);
+        String ariaLabel = buildAriaLabel(node, coord, parentCoord);
 
         svg.append(String.format(
                 Locale.ROOT,
-                "<rect class=\"cell\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" data-html-tip=\"%s\">",
+                "<rect class=\"cell\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"%s\" data-html-tip=\"%s\" aria-label=\"%s\" role=\"img\">",
                 ix,
                 iy,
                 iw,
                 ih,
                 fill,
-                escapeAttr(tipPayload)));
-        svg.append("<title>")
-                .append(xmlText(coord))
-                .append('\n')
-                .append(xmlText("JAR on disk: " + SizeFormatUtil.humanBytes(node.selfSizeBytes())))
-                .append('\n')
-                .append(xmlText("Subtree (unique): " + SizeFormatUtil.humanBytes(node.subtreeUniqueBytes())))
-                .append("</title></rect>\n");
+                escapeAttr(tipPayload),
+                escapeAttr(ariaLabel)));
+        svg.append("</rect>\n");
 
         if (Math.min(iw, ih) >= MIN_LABEL_PX) {
             String textColor = ColorUtil.contrastText(fillColor).toCssRgb();
@@ -181,16 +184,41 @@ public final class HtmlRenderer implements Generator {
         }
     }
 
-    private static String buildTipHtml(DependencyNode node, String coord) {
+    private static String buildTipHtml(DependencyNode node, String coord, String parentCoord) {
+        String parent = parentCoord == null ? "(root)" : parentCoord;
         return "<div class=\"lbl\">"
                 + escapeForHtmlFragment(node.key().artifactId())
                 + "</div><div class=\"coord\">"
                 + escapeForHtmlFragment(coord)
+                + "</div><div class=\"parent\"><span class=\"k\">Parent</span>"
+                + escapeForHtmlFragment(parent)
                 + "</div><div>"
                 + escapeForHtmlFragment("JAR on disk: " + SizeFormatUtil.humanBytes(node.selfSizeBytes()))
                 + "</div><div>"
                 + escapeForHtmlFragment("Subtree (unique): " + SizeFormatUtil.humanBytes(node.subtreeUniqueBytes()))
                 + "</div>";
+    }
+
+    private static String buildAriaLabel(DependencyNode node, String coord, String parentCoord) {
+        return coord
+                + "; Parent: "
+                + (parentCoord == null ? "(root)" : parentCoord)
+                + "; JAR on disk: "
+                + SizeFormatUtil.humanBytes(node.selfSizeBytes())
+                + "; Subtree (unique): "
+                + SizeFormatUtil.humanBytes(node.subtreeUniqueBytes());
+    }
+
+    private static String coordinate(DependencyNode node) {
+        return node.key().groupId()
+                + ":"
+                + node.key().artifactId()
+                + ":"
+                + node.key().packaging()
+                + ":"
+                + node.key().version()
+                + ":"
+                + node.key().scope();
     }
 
     private static String escapeAttr(String s) {

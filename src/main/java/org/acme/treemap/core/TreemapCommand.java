@@ -15,6 +15,7 @@ import org.acme.treemap.core.maven.DependencyNode;
 import org.acme.treemap.core.maven.DependencyScopePruner;
 import org.acme.treemap.core.maven.DependencyTreeCache;
 import org.acme.treemap.core.maven.DependencyTreeParser;
+import org.acme.treemap.core.maven.DependencyViews;
 import org.acme.treemap.core.maven.LocalArtifactResolver;
 import org.acme.treemap.core.maven.MavenInvoker;
 import org.acme.treemap.core.maven.PackagedJarAnalyzer;
@@ -62,6 +63,9 @@ public class TreemapCommand implements Callable<Integer> {
 
     @Option(names = "--packaged-jar", description = "Output JAR to inspect in packaged mode (default: auto-detect in target/)")
     private Path packagedJar;
+
+    @Option(names = "--view", description = "tree | flat (default: tree)")
+    private ViewMode view = ViewMode.TREE;
 
     public static final class OutputFormatConverter implements CommandLine.ITypeConverter<OutputFormat> {
         @Override
@@ -179,13 +183,20 @@ public class TreemapCommand implements Callable<Integer> {
         long analyzeElapsedMs = (System.nanoTime() - analyzeStartNs) / NANOS_PER_MILLISECOND;
         log.info("Tree parse + artifact sizing time: {} ms", analyzeElapsedMs);
 
-        String title = "Dependencies: " + project.getFileName() + " (" + root.key().artifactId() + ")";
+        DependencyNode viewRoot = view == ViewMode.FLAT ? DependencyViews.toFlatByDepth(root) : root;
+        String title = "Dependencies: "
+                + project.getFileName()
+                + " ("
+                + root.key().artifactId()
+                + ", "
+                + view.name().toLowerCase(Locale.ROOT)
+                + " view)";
         OutputFormat outFormat = resolvedFormat();
         Path out = resolvedOutput(project, outFormat);
         log.info("Output format: {}", outFormat);
         Generator generator = Generators.forOutputFormat(outFormat);
         long renderStartNs = System.nanoTime();
-        generator.generate(root, o -> o.output(out)
+        generator.generate(viewRoot, o -> o.output(out)
                 .width(width)
                 .height(height)
                 .title(title));
