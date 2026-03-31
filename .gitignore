@@ -1,0 +1,19 @@
+# Maven
+target/
+dependency-reduced-pom.xml
+
+# Logs
+logs/
+*.log
+
+# VS Code
+.vscode/
+
+# IntelliJ
+.idea/
+.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
