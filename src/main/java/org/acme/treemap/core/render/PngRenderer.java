@@ -27,9 +27,6 @@ public final class PngRenderer implements Generator {
     private static final int MIN_LABEL_PX = 48;
     private static final int MIN_MICRO_LABEL_FONT_PX = 7;
 
-    public PngRenderer() {
-    }
-
     @Override
     public void generate(DependencyNode root, OutputOptions options) throws IOException {
         int width = options.width();

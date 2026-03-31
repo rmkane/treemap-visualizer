@@ -5,16 +5,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /** One row in the Maven dependency tree. */
+@RequiredArgsConstructor
 public final class DependencyNode {
 
     private final ArtifactKey key;
     private final List<DependencyNode> children = new ArrayList<>();
-    private long selfSizeBytes;
-
-    public DependencyNode(ArtifactKey key) {
-        this.key = key;
-    }
+    @Setter private long selfSizeBytes;
 
     public ArtifactKey key() {
         return key;
@@ -26,10 +26,6 @@ public final class DependencyNode {
 
     public long selfSizeBytes() {
         return selfSizeBytes;
-    }
-
-    public void setSelfSizeBytes(long selfSizeBytes) {
-        this.selfSizeBytes = selfSizeBytes;
     }
 
     /**
