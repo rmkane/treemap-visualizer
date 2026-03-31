@@ -29,12 +29,11 @@ class HtmlTemplateTest {
 
         Path out = dir.resolve("out.html");
         new HtmlRenderer()
-                .render(root, OutputOptions.builder()
+                .generate(root, o -> o
                         .output(out)
                         .width(400)
                         .height(300)
-                        .title("Test & Co <proj>")
-                        .build());
+                        .title("Test & Co <proj>"));
 
         String html = Files.readString(out);
         assertTrue(html.contains("Test &amp; Co &lt;proj&gt;"), "title should be XML-escaped");

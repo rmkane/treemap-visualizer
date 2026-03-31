@@ -4,23 +4,23 @@ import org.acme.treemap.OutputFormat;
 
 import java.util.Objects;
 
-/** Resolves an {@link OutputFormat} to a {@link Renderer} implementation. */
-public final class Renderers {
+/** Resolves an {@link OutputFormat} to a {@link Generator} implementation. */
+public final class Generators {
 
-    private Renderers() {}
+    private Generators() {}
 
     /**
-     * Returns the renderer used for CLI / {@code --format} selection.
+     * Returns the generator used for CLI / {@code --format} selection.
      * When adding a new {@link OutputFormat} value, add a {@code case} here and a corresponding
-     * {@link Renderer} class.
+     * {@link Generator} class.
      */
-    public static Renderer forOutputFormat(OutputFormat format) {
+    public static Generator forOutputFormat(OutputFormat format) {
         Objects.requireNonNull(format, "format");
         return switch (format) {
             case PNG -> new PngRenderer();
             case HTML -> new HtmlRenderer();
-            case JSON -> new JsonRenderer();
-            case YAML -> new YamlRenderer();
+            case JSON -> new JsonExporter();
+            case YAML -> new YamlExporter();
         };
     }
 }

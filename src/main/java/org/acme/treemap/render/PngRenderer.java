@@ -18,8 +18,8 @@ import java.util.Comparator;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-/** Renders a dependency tree as a nested treemap PNG. */
-public final class PngRenderer implements Renderer {
+/** Generates a dependency tree as a nested treemap PNG. */
+public final class PngRenderer implements Generator {
 
     private static final int PADDING = 24;
     private static final int MIN_LABEL_PX = 48;
@@ -27,7 +27,7 @@ public final class PngRenderer implements Renderer {
     public PngRenderer() {}
 
     @Override
-    public void render(DependencyNode root, OutputOptions options) throws IOException {
+    public void generate(DependencyNode root, OutputOptions options) throws IOException {
         int width = options.width();
         int height = options.height();
         String title = options.title();

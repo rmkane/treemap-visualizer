@@ -6,9 +6,8 @@ import org.acme.treemap.maven.DependencyTreeParser;
 import org.acme.treemap.maven.LocalArtifactResolver;
 import org.acme.treemap.maven.MavenInvoker;
 import org.acme.treemap.maven.PomChecksum;
-import org.acme.treemap.render.OutputOptions;
-import org.acme.treemap.render.Renderer;
-import org.acme.treemap.render.Renderers;
+import org.acme.treemap.render.Generator;
+import org.acme.treemap.render.Generators;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +30,8 @@ import picocli.CommandLine.Parameters;
 public final class Main implements Callable<Integer> {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
+
+    private static final long NANOS_PER_MILLISECOND = 1_000_000L;
 
     @Parameters(
             index = "0",
@@ -148,7 +149,7 @@ public final class Main implements Callable<Integer> {
                 treeCache.save(pomDigest, lines);
             }
         }
-        long depTreeElapsedMs = (System.nanoTime() - depTreeStartNs) / 1_000_000;
+        long depTreeElapsedMs = (System.nanoTime() - depTreeStartNs) / NANOS_PER_MILLISECOND;
         log.info("Dependency tree time: {} ms (cache: {})", depTreeElapsedMs, treeCacheHit ? "hit" : "miss");
 
         Path localRepo;
@@ -159,32 +160,29 @@ public final class Main implements Callable<Integer> {
             log.warn("Could not resolve settings.localRepository ({}), using ~/.m2/repository", e.toString());
             localRepo = LocalArtifactResolver.defaultLocalRepository();
         }
-        long localRepoElapsedMs = (System.nanoTime() - localRepoStartNs) / 1_000_000;
+        long localRepoElapsedMs = (System.nanoTime() - localRepoStartNs) / NANOS_PER_MILLISECOND;
         log.info("Local repository: {}", localRepo);
         log.info("Local repository resolve time: {} ms", localRepoElapsedMs);
 
         long analyzeStartNs = System.nanoTime();
         DependencyNode root = DependencyTreeParser.parse(lines);
         new LocalArtifactResolver(localRepo).applySizes(root);
-        long analyzeElapsedMs = (System.nanoTime() - analyzeStartNs) / 1_000_000;
+        long analyzeElapsedMs = (System.nanoTime() - analyzeStartNs) / NANOS_PER_MILLISECOND;
         log.info("Tree parse + artifact sizing time: {} ms", analyzeElapsedMs);
 
         String title = "Dependencies: " + project.getFileName() + " (" + root.key().artifactId() + ")";
         OutputFormat outFormat = resolvedFormat();
         Path out = resolvedOutput(project, root.key().artifactId(), outFormat);
         log.info("Output format: {}", outFormat);
-        Renderer renderer = Renderers.forOutputFormat(outFormat);
-        OutputOptions options = OutputOptions.builder()
-                .output(out)
+        Generator generator = Generators.forOutputFormat(outFormat);
+        long renderStartNs = System.nanoTime();
+        generator.generate(root, o -> o.output(out)
                 .width(width)
                 .height(height)
-                .title(title)
-                .build();
-        long renderStartNs = System.nanoTime();
-        renderer.render(root, options);
-        long renderElapsedMs = (System.nanoTime() - renderStartNs) / 1_000_000;
+                .title(title));
+        long renderElapsedMs = (System.nanoTime() - renderStartNs) / NANOS_PER_MILLISECOND;
         log.info("Render time ({}): {} ms", outFormat, renderElapsedMs);
-        long totalElapsedMs = (System.nanoTime() - runStartNs) / 1_000_000;
+        long totalElapsedMs = (System.nanoTime() - runStartNs) / NANOS_PER_MILLISECOND;
         log.info("Total generation time: {} ms", totalElapsedMs);
         log.info("Wrote {}", out);
         System.out.println(out);

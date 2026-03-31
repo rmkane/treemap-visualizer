@@ -13,9 +13,8 @@ import java.util.Optional;
 
 import org.acme.treemap.maven.ArtifactKey;
 import org.acme.treemap.maven.DependencyNode;
-import org.acme.treemap.render.JsonRenderer;
-import org.acme.treemap.render.OutputOptions;
-import org.acme.treemap.render.YamlRenderer;
+import org.acme.treemap.render.JsonExporter;
+import org.acme.treemap.render.YamlExporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -25,13 +24,12 @@ class JsonYamlExportTest {
     void jsonRoundTrip(@TempDir Path dir) throws Exception {
         DependencyNode root = sampleTree();
         Path out = dir.resolve("t.json");
-        new JsonRenderer()
-                .render(root, OutputOptions.builder()
+        new JsonExporter()
+                .generate(root, o -> o
                         .output(out)
                         .width(100)
                         .height(80)
-                        .title("Title")
-                        .build());
+                        .title("Title"));
 
         TreemapSnapshot read =
                 new ObjectMapper().readValue(out.toFile(), TreemapSnapshot.class);
@@ -51,13 +49,12 @@ class JsonYamlExportTest {
     void yamlRoundTrip(@TempDir Path dir) throws Exception {
         DependencyNode root = sampleTree();
         Path out = dir.resolve("t.yaml");
-        new YamlRenderer()
-                .render(root, OutputOptions.builder()
+        new YamlExporter()
+                .generate(root, o -> o
                         .output(out)
                         .width(100)
                         .height(80)
-                        .title("Title")
-                        .build());
+                        .title("Title"));
 
         String text = Files.readString(out);
         assertTrue(text.contains("title: Title"));

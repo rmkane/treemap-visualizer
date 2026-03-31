@@ -14,8 +14,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/** Renders an interactive HTML page with SVG treemap, hover highlight, and tooltips. */
-public final class HtmlRenderer implements Renderer {
+/** Generates an interactive HTML page with SVG treemap, hover highlight, and tooltips. */
+public final class HtmlRenderer implements Generator {
 
     /** Classpath resource path (alongside this class): {@code src/main/resources/org/acme/treemap/render/treemap-chart.html}. */
     public static final String CHART_TEMPLATE_RESOURCE = "treemap-chart.html";
@@ -31,7 +31,7 @@ public final class HtmlRenderer implements Renderer {
     public HtmlRenderer() {}
 
     @Override
-    public void render(DependencyNode root, OutputOptions options) throws IOException {
+    public void generate(DependencyNode root, OutputOptions options) throws IOException {
         int width = options.width();
         int height = options.height();
         String title = options.title();
